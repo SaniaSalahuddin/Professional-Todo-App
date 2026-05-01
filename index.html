@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Professional ToDo App Pro 2.0 — Web</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0D1117;
+      --panel: #161B22;
+      --panel-2: #1F2937;
+      --card: #1a2332;
+      --text: #EDEDED;
+      --muted: #9CA3AF;
+      --accent: #06B6D4;
+      --accent-2: #0891B2;
+      --danger: #EF4444;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --border: #1F2530;
+      --shadow: rgba(0,0,0,0.35);
+    }
+    [data-theme="light"] {
+      --bg: #F6F7FB;
+      --panel: #FFFFFF;
+      --panel-2: #F1F5F9;
+      --card: #FFFFFF;
+      --text: #1F2937;
+      --muted: #6B7280;
+      --accent: #2563EB;
+      --accent-2: #1D4ED8;
+      --danger: #EF4444;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --border: #E5E7EB;
+      --shadow: rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box }
+    html, body { height: 100% }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .app {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+    }
+    /* Sidebar */
+    .sidebar {
+      grid-row: 1 / span 2;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      padding: 18px 14px;
+    }
+    .brand { font-weight: 700; font-size: 18px; margin-bottom: 16px }
+    .nav { display: grid; gap: 8px; margin-top: 8px }
+    .nav button {
+      all: unset;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background .2s, border-color .2s, transform .06s;
+    }
+    .nav button:hover { background: var(--panel); border-color: var(--accent) }
+    .nav button.active { background: var(--accent); border-color: var(--accent); color: #001318 }
+    .nav button:active { transform: translateY(1px) }
+    /* Header */
+    .header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px;
+    }
+    .title { font-weight: 700; font-size: 16px }
+    .header-spacer { flex: 1 }
+    .badge {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      padding: 6px 10px; border-radius: 999px; font-weight: 700; font-size: 13px;
+      cursor: pointer; user-select: none;
+    }
+    .search-wrap {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 10px; padding: 6px 8px;
+    }
+    .search-wrap input { all: unset; color: var(--text); width: 220px; font-size: 14px }
+    .btn {
+      all: unset;
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent); color: #001318;
+      padding: 8px 12px; border-radius: 10px;
+      cursor: pointer; font-weight: 700;
+      transition: background .2s, transform .06s;
+    }
+    .btn:hover { background: var(--accent-2) }
+    .btn:active { transform: translateY(1px) }
+    .btn.secondary { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); font-weight: 600 }
+    .btn.danger { background: var(--danger); color: #120000 }
+    .btn.small { padding: 6px 10px; font-size: 13px }
+    /* Content area */
+    .content { padding: 18px; overflow: auto }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px var(--shadow);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .section-title { font-weight: 700; font-size: 18px; margin: 6px 0 14px }
+    /* Stats */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4, minmax(220px, 1fr)); gap: 14px;
+    }
+    .stat { background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px }
+    .stat-label { color: var(--muted); font-size: 13px }
+    .stat-value { font-weight: 700; font-size: 22px; margin-top: 6px }
+    /* Form */
+    .form-grid { display: grid; gap: 16px; max-width: 680px }
+    .form-row { display: flex; flex-direction: column; gap: 6px }
+    .form-row.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px }
+    .form-label { font-size: 13px; color: var(--muted) }
+    .form-input {
+      background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+      padding: 10px; border-radius: 10px; outline: none; font-size: 14px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(6,182,212,0.35) }
+    textarea.form-input { resize: vertical }
+    .form-actions { display: flex; gap: 12px; margin-top: 8px }
+    /* Table */
+    table { width: 100%; border-collapse: collapse; font-size: 14px }
+    thead th { text-align:left; background: var(--panel-2); border-bottom:1px solid var(--border); padding:10px; color:var(--muted); font-weight:600 }
+    tbody td { border-bottom:1px solid var(--border); padding:10px }
+    tr:hover td { background: rgba(255,255,255,0.03) }
+    .tag { display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid var(--border); background:var(--panel-2); color:var(--text); margin-right:6px }
+    .prio-high { color: var(--danger) }
+    .prio-medium { color: var(--warning) }
+    .prio-low { color: var(--success) }
+    /* Kanban */
+    .kanban { display:grid; grid-template-columns: repeat(3, 1fr); gap: 14px }
+    .kan-col { background: var(--panel-2); border:1px solid var(--border); border-radius:12px; padding:12px; min-height:300px }
+    .kan-title { font-weight:700; margin-bottom:8px }
+    .kan-item { background: var(--panel); border:1px solid var(--border); border-radius:10px; padding:10px; margin-bottom:10px }
+    /* Calendar */
+    .calendar { display:grid; grid-template-columns: repeat(7, 1fr); gap:8px }
+    .cal-cell { background: var(--panel-2); border:1px solid var(--border); border-radius:10px; min-height:80px; padding:8px; font-size:12px }
+    .cal-cell .count { color: var(--muted); margin-top: 6px }
+    /* Modal */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: none; align-items: center; justify-content: center }
+    .modal { width:min(560px, 92vw); background: var(--panel); border:1px solid var(--border); border-radius:14px; box-shadow: 0 12px 40px var(--shadow); padding:16px }
+    .modal h3 { margin: 8px 0 12px }
+    .modal .row { display:grid; grid-template-columns: 160px 1fr; gap:10px; align-items:center; margin-bottom:10px }
+    .modal input[type="text"], .modal select, .modal input[type="number"] {
+      width:100%; background: var(--panel-2); border:1px solid var(--border); color:var(--text); padding:10px; border-radius:10px; outline:none;
+    }
+    .modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px }
+    /* Responsive */
+    @media (max-width: 1000px) { .stats-grid { grid-template-columns: repeat(2, 1fr) } .app { grid-template-columns: 200px 1fr } }
+    @media (max-width: 760px) { .sidebar { display:none } .stats-grid { grid-template-columns: 1fr } .search-wrap input { width: 140px } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">Professional ToDo App </div>
+      <div class="nav" id="nav">
+        <button data-page="home" class="active">Home</button>
+        <button data-page="add">Add Task</button>
+        <button data-page="tasks">Tasks</button>
+        <button data-page="kanban">Kanban</button>
+        <button data-page="calendar">Calendar</button>
+        <button data-page="recycle">Recycle Bin</button>
+        <button data-page="settings">Settings</button>
+        <button data-page="about">About</button>
+      </div>
+    </aside>
+
+    <!-- Header -->
+    <header class="header">
+      <div class="title" id="pageTitle">Dashboard</div>
+      <div class="badge" id="pomodoro">Pomodoro: <span id="pomTime">25:00</span></div>
+      <div class="header-spacer"></div>
+      <div class="search-wrap">
+        <input id="searchInput" type="text" placeholder="Search tasks..." />
+        <button class="btn secondary" id="searchBtn">Search</button>
+      </div>
+      <button class="btn" id="newTaskBtn">New Task</button>
+    </header>
+
+    <!-- Content -->
+    <main class="content">
+      <!-- Home -->
+      <section id="page-home" class="card">
+        <div class="section-title">Dashboard</div>
+        <div class="stats-grid" id="statsGrid"></div>
+        <div style="margin-top:14px; display:flex; gap:8px;">
+          <button class="btn secondary" id="refreshBtn">Refresh</button>
+          <button class="btn secondary" id="toggleThemeBtn">Toggle Theme</button>
+        </div>
+      </section>
+
+      <!-- Add Task -->
+      <section id="page-add" class="card" style="display:none;">
+        <div class="section-title">Add Task</div>
+        <form id="addForm" class="form-grid">
+          <div class="form-row">
+            <label class="form-label">Title *</label>
+            <input type="text" id="titleInput" class="form-input" placeholder="Enter task title" required/>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Description</label>
+            <textarea id="descInput" class="form-input" rows="3" placeholder="Optional description"></textarea>
+          </div>
+          <div class="form-row two-col">
+            <div>
+              <label class="form-label">Due Date</label>
+              <input type="date" id="dueInput" class="form-input"/>
+            </div>
+            <div>
+              <label class="form-label">Priority</label>
+              <select id="priorityInput" class="form-input">
+                <option>Low</option>
+                <option selected>Medium</option>
+                <option>High</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row two-col">
+            <div>
+              <label class="form-label">Category</label>
+              <input type="text" id="categoryInput" class="form-input" placeholder="e.g. Work"/>
+            </div>
+            <div>
+              <label class="form-label">Tags</label>
+              <input type="text" id="tagsInput" class="form-input" placeholder="comma separated"/>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn" type="submit">➕ Add Task</button>
+            <button class="btn secondary" type="reset">Reset</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Tasks -->
+      <section id="page-tasks" class="card" style="display:none;">
+        <div class="section-title">Tasks</div>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <select id="filterStatus" class="form-input" style="max-width:220px;">
+            <option value="all" selected>Status: All</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Done">Done</option>
+            <option value="Trashed">Trashed</option>
+          </select>
+          <select id="filterPriority" class="form-input" style="max-width:220px;">
+            <option value="all" selected>Priority: All</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+          <select id="sortBy" class="form-input" style="max-width:220px;">
+            <option value="due">Sort by Due</option>
+            <option value="priority">Sort by Priority</option>
+            <option value="title">Sort by Title</option>
+          </select>
+        </div>
+        <div style="overflow:auto;">
+          <table id="taskTable">
+            <thead>
+              <tr>
+                <th>Title</th><th>Category</th><th>Priority</th><th>Status</th><th>Due</th><th>Tags</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Kanban -->
+      <section id="page-kanban" class="card" style="display:none;">
+        <div class="section-title">Kanban</div>
+        <div class="kanban" id="kanban">
+          <div class="kan-col"><div class="kan-title">Pending</div><div class="kan-list" data-status="Pending"></div></div>
+          <div class="kan-col"><div class="kan-title">In Progress</div><div class="kan-list" data-status="In Progress"></div></div>
+          <div class="kan-col"><div class="kan-title">Done</div><div class="kan-list" data-status="Done"></div></div>
+        </div>
+      </section>
+
+      <!-- Calendar -->
+      <section id="page-calendar" class="card" style="display:none;">
+        <div class="section-title">Calendar (Month)</div>
+        <div class="calendar" id="calendarGrid"></div>
+      </section>
+
+      <!-- Recycle Bin -->
+      <section id="page-recycle" class="card" style="display:none;">
+        <div class="section-title">Recycle Bin</div>
+        <div id="recycleList" style="display:grid; gap:10px;"></div>
+        <div style="margin-top:12px;">
+          <button class="btn danger" id="purgeBtn">Purge all</button>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section id="page-settings" class="card" style="display:none;">
+        <div class="section-title">Settings</div>
+        <p style="color:var(--muted)">Customize theme and accent color.</p>
+        <button class="btn" id="openSettings">Open Settings</button>
+      </section>
+
+      <!-- About -->
+      <section id="page-about" class="card" style="display:none;">
+        <div class="section-title">About</div>
+        <p>This web version is a clean, modern reimagining of Professional ToDo App Pro using HTML, CSS, and JavaScript.</p>
+      </section>
+    </main>
+  </div>
+
+  <!-- Settings modal -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal">
+      <h3>Settings</h3>
+      <div class="row">
+        <label>Theme</label>
+        <select id="themeSelect">
+          <option value="dark" selected>Dark</option>
+          <option value="light">Light</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Accent color</label>
+        <input type="text" id="accentInput" placeholder="#06B6D4"/>
+      </div>
+      <div class="row">
+        <label>Pomodoro minutes</label>
+        <input type="number" id="pomMinutes" min="1" value="25"/>
+      </div>
+      <div class="modal-actions">
+        <button class="btn secondary" id="closeModal">Cancel</button>
+        <button class="btn" id="saveSettings">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Persistence
+    const LS_KEY = "todo_pro_v2";
+    const state = loadState() || {
+      tasks: [],
+      theme: "dark",
+      accent: getComputedStyle(document.documentElement).getPropertyValue("--accent").trim(),
+      pomMinutes: 25,
+      pomRemaining: 25*60,
+      pomRunning: false,
+      search: ""
+    };
+    saveState();
+
+    function loadState() {
+      try { const raw = localStorage.getItem(LS_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; }
+    }
+    function saveState() { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch {} }
+
+    // Theme & accent
+    document.documentElement.setAttribute("data-theme", state.theme);
+    setAccent(state.accent);
+    function setAccent(hex) {
+      document.documentElement.style.setProperty("--accent", hex);
+      document.documentElement.style.setProperty("--accent-2", shade(hex, 0.86));
+    }
+    function shade(hex, factor) {
+      const c = hex.replace("#","");
+      let r = parseInt(c.substring(0,2),16), g = parseInt(c.substring(2,4),16), b = parseInt(c.substring(4,6),16);
+      r = Math.min(255, Math.max(0, Math.floor(r*factor)));
+      g = Math.min(255, Math.max(0, Math.floor(g*factor)));
+      b = Math.min(255, Math.max(0, Math.floor(b*factor)));
+      return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+    }
+
+    // Navigation
+    const pages = ["home","add","tasks","kanban","calendar","recycle","settings","about"];
+    const nav = document.getElementById("nav");
+    nav.addEventListener("click", (e) => { if (e.target.tagName === "BUTTON") showPage(e.target.dataset.page); });
+    function showPage(name) {
+      pages.forEach(p => {
+        document.getElementById("page-"+p).style.display = (p===name) ? "" : "none";
+        const btn = nav.querySelector(`button[data-page="${p}"]`);
+        if (btn) btn.classList.toggle("active", p===name);
+      });
+      document.getElementById("pageTitle").textContent = ({
+        home:"Dashboard", add:"Add Task", tasks:"Tasks", kanban:"Kanban", calendar:"Calendar",
+        recycle:"Recycle Bin", settings:"Settings", about:"About"
+      })[name] || "Dashboard";
+      renderAll();
+    }
+
+    // Header actions
+    document.getElementById("searchBtn").addEventListener("click", () => {
+      state.search = document.getElementById("searchInput").value.trim().toLowerCase();
+      saveState(); showPage("tasks");
+    });
+    document.getElementById("newTaskBtn").addEventListener("click", () => showPage("add"));
+
+    // Pomodoro
+    const pomEl = document.getElementById("pomodoro"), pomTimeEl = document.getElementById("pomTime");
+    let pomInterval = null;
+    pomEl.addEventListener("click", () => {
+      state.pomRunning = !state.pomRunning; saveState();
+      if (state.pomRunning) {
+        if (pomInterval) clearInterval(pomInterval);
+        pomInterval = setInterval(() => {
+          state.pomRemaining = Math.max(0, state.pomRemaining - 1);
+          renderPomodoro(); saveState();
+          if (state.pomRemaining === 0) {
+            clearInterval(pomInterval); pomInterval = null; state.pomRunning = false;
+            alert("Pomodoro complete!");
+            state.pomRemaining = state.pomMinutes*60; renderPomodoro(); saveState();
+          }
+        }, 1000);
+      } else {
+        clearInterval(pomInterval); pomInterval = null;
+      }
+    });
+    function renderPomodoro() {
+      const m = Math.floor(state.pomRemaining/60);
+      const s = String(state.pomRemaining%60).padStart(2,"0");
+      pomTimeEl.textContent = `${String(m).padStart(2,"0")}:${s}`;
+    }
+
+    // Home stats
+    document.getElementById("refreshBtn").addEventListener("click", renderAll);
+    document.getElementById("toggleThemeBtn").addEventListener("click", () => {
+      const next = (state.theme === "dark") ? "light" : "dark";
+      document.getElementById("themeSelect").value = next;
+      document.getElementById("saveSettings").click();
+    });
+    function renderStats() {
+      const tasks = state.tasks.filter(t => t.status !== "Trashed");
+      const total = tasks.length;
+      const completed = tasks.filter(t => t.status === "Done").length;
+      const pending = total - completed;
+      const dueSoon = tasks.filter(t => daysUntil(t.due) <= 3 && daysUntil(t.due) >= 0 && t.status !== "Done").length;
+      const high = tasks.filter(t => t.priority === "High").length;
+      const tags = [...new Set(tasks.flatMap(t => t.tags))];
+      const progress = total ? Math.round((completed / total) * 1000) / 10 : 0;
+      const items = [
+        { label: "Total", value: total },
+        { label: "Completed", value: completed },
+        { label: "Pending", value: pending },
+        { label: "Progress", value: `${progress}%` },
+        { label: "Due in 3 days", value: dueSoon },
+        { label: "High priority", value: high },
+        { label: "Tags", value: tags.length ? tags.join(", ") : "None" },
+      ];
+      const grid = document.getElementById("statsGrid"); grid.innerHTML = "";
+      items.forEach(({label, value}) => {
+        const el = document.createElement("div");
+        el.className = "stat";
+        el.innerHTML = `<div class="stat-label">${label}</div><div class="stat-value">${escapeHtml(value)}</div>`;
+        grid.appendChild(el);
+      });
+    }
+
+    // Add Task form
+    document.getElementById("addForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const title = document.getElementById("titleInput").value.trim();
+      if (!title) return alert("Title is required");
+      const desc = document.getElementById("descInput").value.trim();
+      const due = document.getElementById("dueInput").value;
+      const priority = document.getElementById("priorityInput").value;
+      const category = document.getElementById("categoryInput").value.trim() || "General";
+      const tags = document.getElementById("tagsInput").value.split(",").map(t => t.trim()).filter(Boolean);
+      const id = (Math.max(0, ...state.tasks.map(t => t.id)) || 0) + 1;
+      state.tasks.push({ id, title, desc, due, priority, category, tags, status: "Pending" });
+      saveState();
+      e.target.reset();
+      showPage("tasks");
+    });
+
+    // Tasks table
+    document.getElementById("filterStatus").addEventListener("change", renderTasks);
+    document.getElementById("filterPriority").addEventListener("change", renderTasks);
+    document.getElementById("sortBy").addEventListener("change", renderTasks);
+    function renderTasks() {
+      const tbody = document.querySelector("#taskTable tbody");
+      if (!tbody || document.getElementById("page-tasks").style.display === "none") return;
+      const status = document.getElementById("filterStatus").value;
+      const prio = document.getElementById("filterPriority").value;
+      const sortBy = document.getElementById("sortBy").value;
+      let rows = state.tasks.slice();
+      rows = rows.filter(t => t.status !== "Trashed");
+      if (state.search) rows = rows.filter(t => itemText(t).includes(state.search));
+      if (status !== "all") rows = rows.filter(t => t.status === status);
+      if (prio !== "all") rows = rows.filter(t => t.priority === prio);
+      rows.sort((a,b) => {
+        if (sortBy === "due") return (a.due||"") < (b.due||"") ? -1 : 1;
+        if (sortBy === "priority") return prIndex(a.priority) - prIndex(b.priority);
+        return a.title.localeCompare(b.title);
+      });
+      tbody.innerHTML = "";
+      rows.forEach(t => {
+        const tr = document.createElement("tr");
+        const prClass = t.priority === "High" ? "prio-high" : (t.priority === "Medium" ? "prio-medium" : "prio-low");
+        tr.innerHTML = `
+          <td>${escapeHtml(t.title)}</td>
+          <td>${escapeHtml(t.category||"")}</td>
+          <td class="${prClass}">${escapeHtml(t.priority)}</td>
+          <td>${escapeHtml(t.status)}</td>
+          <td>${escapeHtml(t.due||"")}</td>
+          <td>${(t.tags||[]).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}</td>
+          <td>
+            <button class="btn secondary small" data-action="edit" data-id="${t.id}">Edit</button>
+            <button class="btn secondary small" data-action="toggle" data-id="${t.id}">Toggle</button>
+            <button class="btn secondary small" data-action="trash" data-id="${t.id}">Trash</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll("button").forEach(b => b.addEventListener("click", taskAction));
+    }
+    function itemText(t) { return [t.title,t.category,t.status,(t.tags||[]).join(" "),t.desc||""].join(" ").toLowerCase(); }
+    function prIndex(p) { return p === "High" ? 2 : (p === "Medium" ? 1 : 0) }
+
+    // Kanban
+    function renderKanban() {
+      const kan = document.getElementById("kanban");
+      if (!kan || document.getElementById("page-kanban").style.display === "none") return;
+      const lists = kan.querySelectorAll(".kan-list");
+      lists.forEach(list => {
+        const status = list.dataset.status;
+        const items = state.tasks.filter(t => t.status === status);
+        list.innerHTML = "";
+        items.forEach(t => {
+          const div = document.createElement("div");
+          div.className = "kan-item";
+          div.innerHTML = `<div style="font-weight:600">${escapeHtml(t.title)}</div>
+                           <div style="color:var(--muted); font-size:12px">${escapeHtml(t.category||"")} · ${escapeHtml(t.due||"No due")}</div>
+                           <div style="display:flex; gap:8px; margin-top:8px">
+                             <button class="btn secondary small" data-action="advance" data-id="${t.id}">Advance</button>
+                             <button class="btn secondary small" data-action="edit" data-id="${t.id}">Edit</button>
+                             <button class="btn secondary small" data-action="trash" data-id="${t.id}">Trash</button>
+                           </div>`;
+          list.appendChild(div);
+          div.querySelectorAll("button").forEach(b => b.addEventListener("click", taskAction));
+        });
+      });
+    }
+
+    // Calendar
+    function renderCalendar() {
+      const grid = document.getElementById("calendarGrid");
+      if (!grid || document.getElementById("page-calendar").style.display === "none") return;
+      grid.innerHTML = "";
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth();
+      const first = new Date(year, month, 1);
+      const startIdx = first.getDay(); // 0..6
+      const daysInMonth = new Date(year, month+1, 0).getDate();
+      for (let i=0; i<42; i++) {
+        const cell = document.createElement("div");
+        cell.className = "cal-cell";
+        const day = i - startIdx + 1;
+        if (day > 0 && day <= daysInMonth) {
+          const dstr = `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+          const count = state.tasks.filter(t => t.due === dstr && t.status !== "Trashed").length;
+          cell.innerHTML = `<div style="font-weight:600">${day}</div>${count ? `<div class="count">${count} task(s)</div>` : ""}`;
+        }
+        grid.appendChild(cell);
+      }
+    }
+
+    // Recycle bin
+    function renderRecycle() {
+      const cont = document.getElementById("recycleList");
+      if (!cont || document.getElementById("page-recycle").style.display === "none") return;
+      cont.innerHTML = "";
+      const trashed = state.tasks.filter(t => t.status === "Trashed");
+      if (!trashed.length) cont.textContent = "Trash is empty.";
+      trashed.forEach(t => {
+        const el = document.createElement("div");
+        el.className = "kan-item";
+        el.innerHTML = `<div style="font-weight:600">${escapeHtml(t.title)}</div>
+                        <div style="color:var(--muted)">${escapeHtml(t.category||"")} · ${escapeHtml(t.due||"No due")}</div>
+                        <div style="display:flex; gap:8px; margin-top:8px">
+                          <button class="btn secondary small" data-action="restore" data-id="${t.id}">Restore</button>
+                          <button class="btn danger small" data-action="delete" data-id="${t.id}">Delete</button>
+                        </div>`;
+        cont.appendChild(el);
+        el.querySelectorAll("button").forEach(b => b.addEventListener("click", taskAction));
+      });
+      document.getElementById("purgeBtn").onclick = () => {
+        if (!confirm("Permanently delete all trashed tasks?")) return;
+        state.tasks = state.tasks.filter(t => t.status !== "Trashed");
+        saveState(); renderRecycle();
+      };
+    }
+
+    // Task actions
+    function taskAction(e) {
+      const id = parseInt(e.target.dataset.id, 10);
+      const action = e.target.dataset.action;
+      const t = state.tasks.find(x => x.id === id);
+      if (!t) return;
+      if (action === "trash") { t.status = "Trashed"; }
+      else if (action === "restore") { t.status = "Pending"; }
+      else if (action === "delete") { state.tasks = state.tasks.filter(x => x.id !== id); }
+      else if (action === "toggle") {
+        const order = ["Pending","In Progress","Done"];
+        t.status = order[(order.indexOf(t.status)+1) % order.length];
+      } else if (action === "advance") {
+        const order = ["Pending","In Progress","Done"];
+        t.status = order[Math.min(order.indexOf(t.status)+1, order.length-1)];
+      } else if (action === "edit") {
+        const title = prompt("Edit title:", t.title);
+        if (title !== null) t.title = title.trim() || t.title;
+      }
+      saveState(); renderAll();
+    }
+
+    // Settings modal
+    const backdrop = document.getElementById("modalBackdrop");
+    document.getElementById("openSettings").addEventListener("click", () => {
+      document.getElementById("themeSelect").value = state.theme;
+      document.getElementById("accentInput").value = state.accent;
+      document.getElementById("pomMinutes").value = state.pomMinutes;
+      backdrop.style.display = "flex";
+    });
+    document.getElementById("closeModal").addEventListener("click", () => backdrop.style.display = "none");
+    document.getElementById("saveSettings").addEventListener("click", () => {
+      const theme = document.getElementById("themeSelect").value;
+      const accent = document.getElementById("accentInput").value.trim();
+      const minutes = parseInt(document.getElementById("pomMinutes").value || "25", 10);
+      state.theme = theme;
+      state.accent = /^#([0-9a-f]{6})$/i.test(accent) ? accent : state.accent;
+      state.pomMinutes = Math.max(1, minutes);
+      state.pomRemaining = state.pomMinutes * 60;
+      document.documentElement.setAttribute("data-theme", state.theme);
+      setAccent(state.accent);
+      saveState();
+      backdrop.style.display = "none";
+      renderAll();
+    });
+
+    // Helpers
+    function daysUntil(d) {
+      if (!d) return Infinity;
+      const now = new Date();
+      const due = new Date(d+"T00:00:00");
+      return Math.floor((due - now) / (1000*60*60*24));
+    }
+    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) }
+
+    // Initial render + sample data if empty
+    if (!state.tasks.length) {
+      state.tasks = [
+        { id: 1, title: "Design dark theme", category: "Design", priority: "High", status: "In Progress", due: "2025-11-30", tags: ["UI","Dark"] },
+        { id: 2, title: "Write docs", category: "Work", priority: "Medium", status: "Pending", due: "2025-12-05", tags: ["Docs"] },
+        { id: 3, title: "Gym", category: "Personal", priority: "Low", status: "Pending", due: "2025-11-25", tags: ["Health"] },
+      ];
+      saveState();
+    }
+    function renderAll() {
+      renderPomodoro();
+      renderStats();
+      renderTasks();
+      renderKanban();
+      renderCalendar();
+      renderRecycle();
+    }
+    showPage("home");
+  </script>
+</body>
+</html>
